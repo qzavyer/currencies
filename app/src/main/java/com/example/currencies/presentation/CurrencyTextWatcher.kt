@@ -2,13 +2,12 @@ package com.example.currencies.presentation
 
 import android.text.Editable
 import android.text.TextWatcher
-import com.example.currencies.network.ITextChangeCallback
 
 class CurrencyTextWatcher(
     private val callback: ITextChangeCallback,
     private val position: Int,
-    private val items: List<CurrencyItem>,
-    private val item: CurrencyItem
+    private val items: List<CurrencyValueItem>,
+    private val item: CurrencyValueItem
 ) : TextWatcher {
     private val watcher = this
     override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {

@@ -8,12 +8,22 @@ private const val LogTag = "APIRepository"
 class APIRepository {
     suspend fun getData(callback: CurrencyCallback) {
         try {
-            val res = RetrofitInstance.searchLoginApi.get(
+            val res = RetrofitInstance.searchLoginApi.getQuotes(
                 BuildConfig.API_KEY,
                 "AMD,GEL,RUB,EUR,TRY",
                 "USD",
                 1
             )
+            callback.action(res)
+        } catch (t: Throwable) {
+            Log.e(LogTag, t.message ?: "error")
+            callback.error(t.message ?: "Network error")
+        }
+    }
+
+    suspend fun getCurrencies(callback: CurrencyListCallback){
+        try {
+            val res = RetrofitInstance.searchLoginApi.getCurrencies(BuildConfig.API_KEY)
             callback.action(res)
         } catch (t: Throwable) {
             Log.e(LogTag, t.message ?: "error")

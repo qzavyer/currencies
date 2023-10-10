@@ -18,3 +18,4 @@ interface CurrencyDao{
     @Query("DELETE FROM currencies")
     suspend fun clear()
 }
+

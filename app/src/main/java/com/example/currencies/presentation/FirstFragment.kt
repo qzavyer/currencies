@@ -7,13 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
+import com.example.currencies.R
 import com.example.currencies.databinding.FragmentFirstBinding
 import com.example.currencies.di.App
 import com.example.currencies.di.AppComponent
 import com.example.currencies.di.DaggerAppComponent
 import com.example.currencies.di.DataModule
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -38,7 +43,6 @@ class FirstFragment : Fragment() {
         super.onCreate(savedInstanceState)
         dagger = DaggerAppComponent.builder().dataModule(DataModule(activity?.application as App))
             .build()
-
     }
 
     override fun onCreateView(
@@ -47,28 +51,36 @@ class FirstFragment : Fragment() {
     ): View {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = CurrencyAdapter { onItemEdit(it) }
+        adapter = CurrencyAdapter()
+        binding.settings.setOnClickListener {
+            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+        }
         _binding.recyclerView.adapter = adapter
-        lifecycleScope.launchWhenStarted {
-            _viewModel.state.collect {
-                changeState(it)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                _viewModel.state.collect {
+                    changeState(it)
+                }
             }
         }
 
-        lifecycleScope.launchWhenStarted {
-            _viewModel.date.collect {
-                changeDate(it)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                _viewModel.date.collect {
+                    changeDate(it)
+                }
             }
         }
 
-        lifecycleScope.launchWhenStarted {
-            _viewModel.dataChannel.collect {
-                adapter.setData(it)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                _viewModel.dataChannel.collect {
+                    adapter.setData(it)
+                }
             }
         }
 
@@ -101,9 +113,5 @@ class FirstFragment : Fragment() {
     private fun changeDate(date: OffsetDateTime?) {
         val dateValue = date?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm"))
         binding.info.text = dateValue
-    }
-
-    private fun onItemEdit(item: CurrencyItem) {
-
     }
 }

@@ -6,17 +6,15 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencies.databinding.CurrencyItemBinding
-import com.example.currencies.network.ITextChangeCallback
 
-class CurrencyAdapter(private val onClick: (CurrencyItem) -> Unit) :
-    RecyclerView.Adapter<CurrencyHolder>() {
-    private var _items: List<CurrencyItem> = emptyList()
+class CurrencyAdapter : RecyclerView.Adapter<CurrencyHolder>() {
+    private var _items: List<CurrencyValueItem> = emptyList()
     private var _context: Context? = null
-    var isCanChange :Boolean = false
+    var isCanChange: Boolean = false
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setData(items: List<CurrencyItem>) {
-        if(!isCanChange)
+    fun setData(items: List<CurrencyValueItem>) {
+        if (!isCanChange)
             return
         _items = items
         notifyDataSetChanged()
@@ -38,14 +36,12 @@ class CurrencyAdapter(private val onClick: (CurrencyItem) -> Unit) :
             super.onBindViewHolder(holder, position, payloads)
         } else {
             for (payload in payloads) {
-                if (payload is CurrencyItem) {
-                    val value = String.format("%.2f", payload.value)
-                    holder.binding.value.setText(value)
+                if (payload is CurrencyValueItem) {
+                    holder.updateValue(payload.value)
                     payload.isSet = false
                 }
             }
         }
-
     }
 
     override fun onBindViewHolder(holder: CurrencyHolder, position: Int) {
@@ -57,8 +53,8 @@ class CurrencyAdapter(private val onClick: (CurrencyItem) -> Unit) :
                 watcher: CurrencyTextWatcher,
                 value: Float?,
                 position: Int,
-                items: List<CurrencyItem>,
-                item: CurrencyItem
+                items: List<CurrencyValueItem>,
+                item: CurrencyValueItem
             ) {
                 if (item.isSet)
                     return
@@ -74,10 +70,7 @@ class CurrencyAdapter(private val onClick: (CurrencyItem) -> Unit) :
                 }
             }
         }, position, _items, item ?: return)
-        holder.binding.value.addTextChangedListener(watcher)
-        holder.binding.root.setOnClickListener {
-            onClick(item)
-        }
+        holder.start(watcher)
     }
 
     override fun getItemCount(): Int {

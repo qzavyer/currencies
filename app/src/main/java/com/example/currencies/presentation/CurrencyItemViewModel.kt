@@ -25,7 +25,7 @@ class CurrencyItemViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow<State>(State.Unready)
     private val _lastDate = MutableStateFlow<OffsetDateTime?>(null)
-    private val _channel = Channel<List<CurrencyItem>>()
+    private val _channel = Channel<List<CurrencyValueItem>>()
 
     /**
      * Поток обновления состояния.
@@ -67,9 +67,9 @@ class CurrencyItemViewModel(
 
     private suspend fun loadFromDb(loadFromNetworkIfException: Boolean) {
         try {
-            val list = mutableListOf<CurrencyItem>()
+            val list = mutableListOf<CurrencyValueItem>()
             list.add(
-                CurrencyItem("USD", 1f, "")
+                CurrencyValueItem("USD", 1f, "")
             )
             val currencyValues = currencies.getAll().firstOrNull()
             if (currencyValues == null) {
@@ -79,7 +79,7 @@ class CurrencyItemViewModel(
                 return
             }
             currencyValues.forEach {
-                list.add(CurrencyItem(it.name, it.value, ""))
+                list.add(CurrencyValueItem(it.name, it.value, ""))
             }
             list.sortBy {
                 order[it.ticket]
@@ -103,9 +103,9 @@ class CurrencyItemViewModel(
                         if (data.isSuccess == true) {
                             val source = data.source ?: "USD"
                             _lastDate.value = data.date
-                            val list = mutableListOf<CurrencyItem>()
+                            val list = mutableListOf<CurrencyValueItem>()
                             list.add(
-                                CurrencyItem(
+                                CurrencyValueItem(
                                     source,
                                     1f,
                                     ""
@@ -115,7 +115,7 @@ class CurrencyItemViewModel(
                             currencyData.insert(data.timestamp ?: 0, source)
                             currencies.clear()
                             data.quotes?.forEach {
-                                val item = CurrencyItem(it.key, it.value, source)
+                                val item = CurrencyValueItem(it.key, it.value, source)
                                 list.add(item)
                                 currencies.insert(item.ticket, item.course)
                             }

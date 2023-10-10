@@ -1,6 +1,6 @@
 package com.example.currencies.presentation
 
-class CurrencyItem(name: String, val course: Float, source: String) {
+class CurrencyValueItem(name: String, val course: Float, source: String) {
     var isSet: Boolean = false
     val ticket = name.replace(source, "")
     var value: Float? = null
