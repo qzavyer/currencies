@@ -4,10 +4,10 @@ import android.text.TextWatcher
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencies.databinding.CurrencyItemBinding
 
-class CurrencyHolder(private val binding: CurrencyItemBinding) : RecyclerView.ViewHolder(binding.root) {
-    fun start(watcher: TextWatcher){
+class CurrencyHolder(private val binding: CurrencyItemBinding) :
+    RecyclerView.ViewHolder(binding.root) {
+    fun start(watcher: TextWatcher) {
         binding.value.addTextChangedListener(watcher)
-
     }
 
     fun setItem(item: CurrencyValueItem?) {
@@ -21,7 +21,7 @@ class CurrencyHolder(private val binding: CurrencyItemBinding) : RecyclerView.Vi
             binding.value.setText(item.value.toString())
     }
 
-    fun updateValue(value: Float?){
+    fun updateValue(value: Float?) {
         val text = String.format("%.2f", value)
         binding.value.setText(text)
     }

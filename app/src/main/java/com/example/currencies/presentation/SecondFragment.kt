@@ -53,13 +53,17 @@ class SecondFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = SettingsAdapter()
+        adapter = SettingsAdapter(object : TicketOperations {
+            override fun onRemoveClick(ticket: String) {
+                itemRemoveClick(ticket)
+            }
+
+            override fun onTicketChoice(ticket: String) {
+                ticketChoice(ticket)
+            }
+        })
 
         binding.buttonCancel.setOnClickListener {
-            findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
-        }
-
-        binding.buttonSave.setOnClickListener {
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
 
@@ -83,25 +87,33 @@ class SecondFragment : Fragment() {
         _viewModel.updateData()
     }
 
+    private fun itemRemoveClick(ticket: String) {
+        lifecycleScope.launch {
+            _viewModel.save(ticket, false)
+        }
+    }
+
+    private fun ticketChoice(ticket: String) {
+        lifecycleScope.launch {
+            //_viewModel.save(ticket, true)
+        }
+    }
+
     private fun changeState(state: State) {
         when (state) {
             is State.Error -> {
                 binding.currencies.isEnabled = true
-                adapter.isCanChange = false
                 Log.e(LogTag, state.message)
                 Snackbar.make(binding.root, state.message, Snackbar.LENGTH_SHORT).show()
             }
             State.Loading -> {
                 binding.currencies.isEnabled = false
-                adapter.isCanChange = true
             }
             State.Success -> {
                 binding.currencies.isEnabled = true
-                adapter.isCanChange = false
             }
             State.Unready -> {
                 binding.currencies.isEnabled = false
-                adapter.isCanChange = false
             }
         }
     }

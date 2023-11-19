@@ -11,4 +11,6 @@ data class CurrencyItem(
     val ticket: String,
     @ColumnInfo(name = "description")
     val description: String,
+    @ColumnInfo(name = "is_use", defaultValue = "false")
+    var isUse: Boolean,
 )
