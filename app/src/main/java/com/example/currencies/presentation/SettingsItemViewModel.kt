@@ -78,6 +78,18 @@ class SettingsItemViewModel(
         }
     }
 
+    suspend fun save(tickets: List<String>) {
+        _channel.send(listOf())
+        _list.forEach {
+            val ticket = it.ticket
+            val isUse = tickets.any { t -> ticket.uppercase() == t.trim().uppercase() }
+            it.isUse = isUse
+            currencyItems.update(ticket, isUse)
+        }
+        _channel.send(_list)
+        _state.value = State.Success
+    }
+
     private suspend fun loadFromNetwork() {
         try {
             repository.getCurrencies(object : CurrencyListCallback {
@@ -95,7 +107,7 @@ class SettingsItemViewModel(
                                 list.sortBy {
                                     it.ticket
                                 }
-                                list.add(CurrencyItem("","", true))
+                                list.add(CurrencyItem("", "", true))
                                 Log.d(LogTag, "loadFromNetwork ${list.size}")
                                 _channel.send(list)
                                 _state.value = State.Success

@@ -66,9 +66,16 @@ class SecondFragment : Fragment() {
         binding.buttonCancel.setOnClickListener {
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
+        binding.buttonSave.setOnClickListener {
+            val tickets = (binding.currenciesStr.text?:"").split(",")
+            lifecycleScope.launch {
+                _viewModel.save(tickets)
+            }
+            findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
+        }
 
         _binding.currencies.adapter = adapter
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 _viewModel.state.collect {
                     changeState(it)
@@ -76,10 +83,12 @@ class SecondFragment : Fragment() {
             }
         }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 _viewModel.dataChannel.collect {
-                    adapter.setData(it)
+                    //adapter.setData(it)
+                    binding.currenciesStr.setText(it.filter { it.isUse && it.ticket.length>0 }
+                        .joinToString { it.ticket })
                 }
             }
         }
@@ -106,12 +115,15 @@ class SecondFragment : Fragment() {
                 Log.e(LogTag, state.message)
                 Snackbar.make(binding.root, state.message, Snackbar.LENGTH_SHORT).show()
             }
+
             State.Loading -> {
                 binding.currencies.isEnabled = false
             }
+
             State.Success -> {
                 binding.currencies.isEnabled = true
             }
+
             State.Unready -> {
                 binding.currencies.isEnabled = false
             }

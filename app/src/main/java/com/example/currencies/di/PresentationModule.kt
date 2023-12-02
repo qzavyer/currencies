@@ -14,8 +14,13 @@ import dagger.Provides
 @Module
 class PresentationModule {
     @Provides
-    fun provideCurrencyViewModel(repository: APIRepository, currencyDao: CurrencyDao, currencyDataDao: CurrencyDataDao ): CurrencyItemViewModel {
-        return CurrencyItemViewModel(repository, currencyDao, currencyDataDao)
+    fun provideCurrencyViewModel(
+        repository: APIRepository,
+        currencyDao: CurrencyDao,
+        currencyDataDao: CurrencyDataDao,
+        currencyItems: CurrencyItemDao
+    ): CurrencyItemViewModel {
+        return CurrencyItemViewModel(repository, currencyDao, currencyDataDao, currencyItems)
     }
 
     @Provides
@@ -24,7 +29,10 @@ class PresentationModule {
     }
 
     @Provides
-    fun provideSettingsViewModel(repository: APIRepository, currencyItemDao: CurrencyItemDao): SettingsItemViewModel {
+    fun provideSettingsViewModel(
+        repository: APIRepository,
+        currencyItemDao: CurrencyItemDao
+    ): SettingsItemViewModel {
         return SettingsItemViewModel(repository, currencyItemDao)
     }
 

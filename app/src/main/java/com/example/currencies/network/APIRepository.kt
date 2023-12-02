@@ -6,11 +6,11 @@ import com.example.currencies.BuildConfig
 private const val LogTag = "APIRepository"
 
 class APIRepository {
-    suspend fun getData(callback: CurrencyCallback) {
+    suspend fun getData(callback: CurrencyCallback, tickets: String) {
         try {
             val res = RetrofitInstance.searchLoginApi.getQuotes(
                 BuildConfig.API_KEY,
-                "AMD,GEL,RUB,EUR,TRY",
+                /*"AMD,GEL,RUB,EUR,TRY"*/tickets,
                 "USD",
                 1
             )

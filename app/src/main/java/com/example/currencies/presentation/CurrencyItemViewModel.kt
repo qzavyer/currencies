@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.currencies.data.CurrencyDao
 import com.example.currencies.data.CurrencyDataDao
+import com.example.currencies.data.CurrencyItemDao
 import com.example.currencies.network.APIRepository
 import com.example.currencies.network.CurrencyCallback
 import com.example.currencies.network.CurrencyResponseDto
@@ -21,11 +22,13 @@ private const val LogTag = "CurrencyItemViewModel"
 class CurrencyItemViewModel(
     private val repository: APIRepository,
     private val currencies: CurrencyDao,
-    private val currencyData: CurrencyDataDao
+    private val currencyData: CurrencyDataDao,
+    private val currencyItems: CurrencyItemDao
 ) : ViewModel() {
     private val _state = MutableStateFlow<State>(State.Unready)
     private val _lastDate = MutableStateFlow<OffsetDateTime?>(null)
     private val _channel = Channel<List<CurrencyValueItem>>()
+    private var _ticketList: List<String> = emptyList()
 
     /**
      * Поток обновления состояния.
@@ -42,18 +45,30 @@ class CurrencyItemViewModel(
      */
     val dataChannel = _channel.receiveAsFlow()
 
-    fun updateData() {
+    fun updateData(ticketList: List<String> = emptyList()) {
         Log.d(LogTag, "START")
         _state.value = State.Loading
         viewModelScope.launch {
             try {
                 val dataDao = currencyData.get().firstOrNull()
                 _lastDate.value = dataDao?.date
-                if (dataDao?.date == null || dataDao.date.plusDays(1) < OffsetDateTime.now()) {
-                    Log.d(LogTag, "${dataDao?.date}")
-                    loadFromNetwork(true)
+                val oldTickets = if (_ticketList.isEmpty())
+                    "USD"
+                else
+                    _ticketList.filter { it.isNotEmpty() }
+                        .sortedBy { it }.joinToString { it.uppercase() }
+                val newTickets: String?
+                if (ticketList.isEmpty()) {
+                    newTickets = null
                 } else {
-                    loadFromDb(true)
+                    newTickets = ticketList.filter { it.isNotEmpty() }
+                        .sortedBy { it }.joinToString { it.uppercase() }
+                    _ticketList = ticketList
+                }
+                if (dataDao?.date == null || dataDao.date.plusDays(1) < OffsetDateTime.now() || newTickets != oldTickets) {
+                    loadFromNetwork(true, newTickets ?: oldTickets)
+                } else {
+                    loadFromDb(true, newTickets)
                 }
             } catch (t: Throwable) {
                 Log.e(LogTag, t.message ?: "error", t)
@@ -65,19 +80,27 @@ class CurrencyItemViewModel(
     private val order: Map<String, Int> =
         mapOf("USD" to 1, "EUR" to 2, "RUB" to 3, "GEL" to 4, "TRY" to 5, "AMD" to 6)
 
-    private suspend fun loadFromDb(loadFromNetworkIfException: Boolean) {
+    private suspend fun loadFromDb(loadFromNetworkIfException: Boolean, tickets: String) {
         try {
             val list = mutableListOf<CurrencyValueItem>()
-            list.add(
-                CurrencyValueItem("USD", 1f, "")
-            )
             val currencyValues = currencies.getAll().firstOrNull()
             if (currencyValues == null) {
                 if (loadFromNetworkIfException) {
-                    loadFromNetwork(false)
+                    loadFromNetwork(false, tickets)
                 }
                 return
             }
+            if(list.size == 0) {
+                val currencyItems = currencyItems.getAll().firstOrNull()
+                if (currencyItems != null && currencyItems.isEmpty()) {
+                    currencyItems.forEach {
+                        list.add(CurrencyValueItem(it.ticket, 1f, ""))
+                    }
+                }
+            }
+            list.add(
+                CurrencyValueItem("USD", 1f, "")
+            )
             currencyValues.forEach {
                 list.add(CurrencyValueItem(it.name, it.value, ""))
             }
@@ -89,12 +112,12 @@ class CurrencyItemViewModel(
         } catch (t: Throwable) {
             Log.e(LogTag, t.message ?: "error", t)
             if (loadFromNetworkIfException) {
-                loadFromNetwork(false)
+                loadFromNetwork(false, tickets)
             }
         }
     }
 
-    private suspend fun loadFromNetwork(loadFromDbIfException: Boolean) {
+    private suspend fun loadFromNetwork(loadFromDbIfException: Boolean, tickets: String) {
         try {
             Log.i(LogTag, "INSERT")
             repository.getData(object : CurrencyCallback {
@@ -128,7 +151,7 @@ class CurrencyItemViewModel(
                         } else {
                             _state.value = State.Error("Network load error")
                             if (loadFromDbIfException) {
-                                loadFromDb(false)
+                                loadFromDb(false, tickets)
                             }
                         }
                     }
@@ -138,15 +161,15 @@ class CurrencyItemViewModel(
                     _state.value = State.Error(message)
                     if (loadFromDbIfException) {
                         viewModelScope.launch {
-                            loadFromDb(false)
+                            loadFromDb(false, tickets)
                         }
                     }
                 }
-            })
+            }, tickets)
         } catch (t: Throwable) {
             Log.e(LogTag, t.message ?: "error", t)
             if (loadFromDbIfException) {
-                loadFromDb(false)
+                loadFromDb(false, tickets)
             }
         }
     }
