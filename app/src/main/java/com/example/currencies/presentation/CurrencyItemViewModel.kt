@@ -53,7 +53,7 @@ class CurrencyItemViewModel(
                 val dataDao = currencyData.get().firstOrNull()
                 _lastDate.value = dataDao?.date
                 val oldTickets = if (_ticketList.isEmpty())
-                    "USD"
+                    getCurrentCurrencies().joinToString { it.ticket.uppercase() }
                 else
                     _ticketList.filter { it.isNotEmpty() }
                         .sortedBy { it }.joinToString { it.uppercase() }
@@ -82,7 +82,6 @@ class CurrencyItemViewModel(
 
     private suspend fun loadFromDb(loadFromNetworkIfException: Boolean, tickets: String) {
         try {
-            val list = mutableListOf<CurrencyValueItem>()
             val currencyValues = currencies.getAll().firstOrNull()
             if (currencyValues == null) {
                 if (loadFromNetworkIfException) {
@@ -90,17 +89,10 @@ class CurrencyItemViewModel(
                 }
                 return
             }
-            if(list.size == 0) {
-                val currencyItems = currencyItems.getAll().firstOrNull()
-                if (currencyItems != null && currencyItems.isEmpty()) {
-                    currencyItems.forEach {
-                        list.add(CurrencyValueItem(it.ticket, 1f, ""))
-                    }
-                }
-            }
-            list.add(
+            val list = getCurrentCurrencies()
+            /*list.add(
                 CurrencyValueItem("USD", 1f, "")
-            )
+            )*/
             currencyValues.forEach {
                 list.add(CurrencyValueItem(it.name, it.value, ""))
             }
@@ -115,6 +107,18 @@ class CurrencyItemViewModel(
                 loadFromNetwork(false, tickets)
             }
         }
+    }
+
+    private suspend fun getCurrentCurrencies(): MutableList<CurrencyValueItem> {
+        val list = mutableListOf<CurrencyValueItem>()
+        val currencyItems = currencyItems.getAll().firstOrNull()
+        if (!currencyItems.isNullOrEmpty()) {
+            currencyItems.forEach {
+                if (it.isUse)
+                    list.add(CurrencyValueItem(it.ticket, 1f, "USD"))
+            }
+        }
+        return list
     }
 
     private suspend fun loadFromNetwork(loadFromDbIfException: Boolean, tickets: String) {

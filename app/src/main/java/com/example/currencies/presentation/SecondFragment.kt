@@ -70,8 +70,8 @@ class SecondFragment : Fragment() {
             val tickets = (binding.currenciesStr.text?:"").split(",")
             lifecycleScope.launch {
                 _viewModel.save(tickets)
+                findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
             }
-            findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
 
         _binding.currencies.adapter = adapter
