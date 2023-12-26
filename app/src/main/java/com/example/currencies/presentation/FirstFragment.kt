@@ -61,7 +61,7 @@ class FirstFragment : Fragment() {
         }
         _binding.recyclerView.adapter = adapter
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 _viewModel.state.collect {
                     changeState(it)
                 }
@@ -69,7 +69,7 @@ class FirstFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 _viewModel.date.collect {
                     changeDate(it)
                 }
@@ -77,7 +77,7 @@ class FirstFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 _viewModel.dataChannel.collect {
                     adapter.setData(it)
                 }

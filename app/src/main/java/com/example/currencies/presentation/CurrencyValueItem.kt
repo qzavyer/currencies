@@ -1,8 +1,15 @@
 package com.example.currencies.presentation
 
-class CurrencyValueItem(name: String, val course: Float, source: String) {
+class CurrencyValueItem(private val name: String, val course: Float, val source: String) {
     var isSet: Boolean = false
-    val ticket = name.replace(source, "")
+    val ticket: String
+        get() {
+            val ticket = name.replace(source, "")
+            return if (ticket == "")
+                source
+            else
+                ticket
+        }
     var value: Float? = null
     fun calc(value: Float?) {
         if (value == null)

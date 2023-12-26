@@ -131,13 +131,6 @@ class CurrencyItemViewModel(
                             val source = data.source ?: "USD"
                             _lastDate.value = data.date
                             val list = mutableListOf<CurrencyValueItem>()
-                            list.add(
-                                CurrencyValueItem(
-                                    source,
-                                    1f,
-                                    ""
-                                )
-                            )
                             currencyData.clear()
                             currencyData.insert(data.timestamp ?: 0, source)
                             currencies.clear()
@@ -146,10 +139,15 @@ class CurrencyItemViewModel(
                                 list.add(item)
                                 currencies.insert(item.ticket, item.course)
                             }
+                            val sourceTicket = tickets.split(",").firstOrNull {
+                                it.trim().uppercase() == source
+                            }
+                            if(sourceTicket != null && list.all{item-> item.ticket != sourceTicket}){
+                                list.add(CurrencyValueItem(source, 1f, source))
+                            }
                             list.sortBy {
                                 order[it.ticket]
                             }
-                            Log.d(LogTag, "${list.size}")
                             _channel.send(list)
                             _state.value = State.Success
                         } else {
