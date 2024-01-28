@@ -67,7 +67,7 @@ class SecondFragment : Fragment() {
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
         binding.buttonSave.setOnClickListener {
-            val tickets = (binding.currenciesStr.text?:"").split(",")
+            val tickets = (binding.currenciesStr.text?:"").toString().uppercase().split(",")
             lifecycleScope.launch {
                 _viewModel.save(tickets)
                 findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)

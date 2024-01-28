@@ -35,16 +35,6 @@ class SettingsItemViewModel(
      */
     val dataChannel = _channel.receiveAsFlow()
 
-    suspend fun addItem() {
-        try {
-            _list.add(CurrencyItem("", "test", true))
-            _channel.send(_list)
-            _state.value = State.Loading
-        } catch (t: Throwable) {
-            Log.e(LogTag, t.message ?: "error")
-        }
-    }
-
     fun updateData() {
         Log.d(LogTag, "START")
         _state.value = State.Loading
@@ -60,22 +50,13 @@ class SettingsItemViewModel(
 
     suspend fun save(ticket: String, isUse: Boolean) {
         _channel.send(listOf())
-        Log.d(LogTag, "save $ticket")
         val item = _list.firstOrNull {
             it.ticket == ticket
         } ?: return
-        Log.d(LogTag, "save 2")
         item.isUse = isUse
-        Log.d(LogTag, "save 3")
         _channel.send(_list)
-        Log.d(LogTag, "save 4")
         currencyItems.update(ticket, isUse)
-        Log.d(LogTag, "save 5")
         _state.value = State.Success
-
-        _list.forEach {
-            Log.d(LogTag, "save ${it.ticket}=${it.isUse}")
-        }
     }
 
     suspend fun save(tickets: List<String>) {
@@ -85,6 +66,9 @@ class SettingsItemViewModel(
             val isUse = tickets.any { t -> ticket.uppercase() == t.trim().uppercase() }
             it.isUse = isUse
             currencyItems.update(ticket, isUse)
+        }
+        tickets.forEach {
+            currencyItems.update(it.trim().uppercase(), true)
         }
         _channel.send(_list)
         _state.value = State.Success
@@ -99,7 +83,6 @@ class SettingsItemViewModel(
                             if (data.isSuccess == true) {
                                 val list = mutableListOf<CurrencyItem>()
                                 data.symbols?.forEach {
-                                    Log.d(LogTag, "data.symbols?.forEach ${it.key}=${it.value}")
                                     val item = CurrencyItem(it.key, it.value, false)
                                     list.add(item)
                                     currencyItems.insert(it.key, it.value)
@@ -132,9 +115,8 @@ class SettingsItemViewModel(
     private suspend fun loadFromDb() {
         try {
             _list.clear()
-            _list.add(CurrencyItem("", "empty", true))
             val currencyItems = currencyItems.getAll().firstOrNull()
-            if (currencyItems == null || currencyItems.isEmpty()) {
+            if (currencyItems.isNullOrEmpty()) {
                 loadFromNetwork()
                 return
             }

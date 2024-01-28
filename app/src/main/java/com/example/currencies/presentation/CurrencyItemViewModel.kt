@@ -65,10 +65,11 @@ class CurrencyItemViewModel(
                         .sortedBy { it }.joinToString { it.uppercase() }
                     _ticketList = ticketList
                 }
-                if (dataDao?.date == null || dataDao.date.plusDays(1) < OffsetDateTime.now() || newTickets != oldTickets) {
-                    loadFromNetwork(true, newTickets ?: oldTickets)
+                val requestTickets = newTickets ?: oldTickets
+                if (requestTickets.length >= 3 && (dataDao?.date == null || dataDao.date.plusDays(1) < OffsetDateTime.now() || newTickets != oldTickets)) {
+                    loadFromNetwork(true, requestTickets)
                 } else {
-                    loadFromDb(true, newTickets)
+                    loadFromDb(true, requestTickets)
                 }
             } catch (t: Throwable) {
                 Log.e(LogTag, t.message ?: "error", t)
@@ -136,13 +137,14 @@ class CurrencyItemViewModel(
                             currencies.clear()
                             data.quotes?.forEach {
                                 val item = CurrencyValueItem(it.key, it.value, source)
-                                list.add(item)
+                                if (tickets.length >= 3)
+                                    list.add(item)
                                 currencies.insert(item.ticket, item.course)
                             }
                             val sourceTicket = tickets.split(",").firstOrNull {
                                 it.trim().uppercase() == source
                             }
-                            if(sourceTicket != null && list.all{item-> item.ticket != sourceTicket}){
+                            if (sourceTicket != null && list.all { item -> item.ticket != sourceTicket }) {
                                 list.add(CurrencyValueItem(source, 1f, source))
                             }
                             list.sortBy {

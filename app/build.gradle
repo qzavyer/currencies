@@ -16,7 +16,7 @@ android {
         applicationId "com.example.currencies"
         minSdk 26
         targetSdk 34
-        versionCode 1
+        versionCode 3
         versionName "1.0"
 
         javaCompileOptions {
@@ -27,12 +27,14 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "API_KEY",localProperties['apiKey']
+        signingConfig signingConfigs.debug
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
